@@ -1,11 +1,11 @@
 id = "codebook"
 name = "Codebook"
 version = "0.1.0"
-description = "Zed extension for codebook."
+description = "Codebook: code aware spell checker"
 authors = ["Bo"]
 license = "MIT"
 schema_version = 1
-# repository = "https://github.com/your-name/my-zed-extension"
+repository = "https://github.com/blopker/codebook"
 
 [language_servers.codebook]
 name = "codebook"
