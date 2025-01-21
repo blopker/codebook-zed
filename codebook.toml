@@ -1,0 +1,8 @@
+dictionaries = ["en_us"]
+words = [
+    "blopker",
+    "codebook",
+    "worktree",
+]
+flag_words = []
+ignore_paths = []
