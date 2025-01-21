@@ -1,7 +1,7 @@
 id = "codebook"
-name = "Codebook"
+name = "Codebook Spell Checker"
 version = "0.1.0"
-description = "Codebook: code aware spell checker"
+description = "A fast, code aware spell checker. 📒"
 authors = ["Bo"]
 license = "MIT"
 schema_version = 1
