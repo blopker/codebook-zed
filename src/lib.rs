@@ -78,7 +78,7 @@ impl CodebookExtension {
 
         let (os_str, file_ext) = match platform {
             zed::Os::Mac => ("apple-darwin", "tar.gz"),
-            zed::Os::Linux => ("unknown-linux-gnu", "tar.gz"),
+            zed::Os::Linux => ("unknown-linux-musl", "tar.gz"),
             zed::Os::Windows => ("pc-windows-msvc", "zip"),
         };
 

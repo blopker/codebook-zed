@@ -1,8 +1,4 @@
 dictionaries = ["en_us"]
-words = [
-    "blopker",
-    "codebook",
-    "worktree",
-]
+words = ["blopker", "codebook", "worktree", "musl"]
 flag_words = []
 ignore_paths = []
