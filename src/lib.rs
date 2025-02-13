@@ -35,7 +35,7 @@ impl CodebookExtension {
         if let Some(path) = worktree.which(EXTENSION_LSP_NAME) {
             return Ok(CodebookBinary {
                 path: PathBuf::from(path),
-                env: Some(worktree.shell_env()),
+                env: Some(vec![("RUST_LOG".to_string(), "info".to_string())]),
             });
         }
 
@@ -43,7 +43,7 @@ impl CodebookExtension {
             if path.exists() {
                 return Ok(CodebookBinary {
                     path: path.clone(),
-                    env: None,
+                    env: Some(vec![("RUST_LOG".to_string(), "info".to_string())]),
                 });
             }
         }
