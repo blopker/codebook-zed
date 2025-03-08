@@ -122,8 +122,17 @@ impl CodebookExtension {
                 Ok(())
             })();
 
+            zed::set_language_server_installation_status(
+                language_server_id,
+                &zed::LanguageServerInstallationStatus::None,
+            );
+
             if let Err(e) = download_result {
                 fs::remove_dir_all(&version_dir).ok();
+                zed::set_language_server_installation_status(
+                    language_server_id,
+                    &zed::LanguageServerInstallationStatus::Failed(e.clone()),
+                );
                 return Err(e);
             }
 
