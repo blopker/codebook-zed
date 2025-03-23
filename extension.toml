@@ -1,7 +1,7 @@
 id = "codebook"
 name = "Codebook Spell Checker"
 version = "0.1.4"
-description = "A fast, code aware spell checker. 📒"
+description = "📒 A fast, code aware spell checker."
 authors = ["Bo"]
 license = "MIT"
 schema_version = 1
@@ -17,10 +17,12 @@ languages = [
     "JavaScript React",
     "JavaScript",
     "Markdown",
+    "PHP",
     "Plain Text",
     "Python",
     "Ruby",
     "Rust",
+    "Shell Script",
     "TOML",
     "TypeScript React",
     "TypeScript",
