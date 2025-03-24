@@ -1,3 +1,6 @@
+[0.1.5]
+- Add PHP and Bash
+
 [0.1.3]
 - Add support for C
 
