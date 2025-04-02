@@ -1,3 +1,7 @@
+[0.1.6]
+- Add R
+- Update deps
+
 [0.1.5]
 - Add PHP and Bash
 
