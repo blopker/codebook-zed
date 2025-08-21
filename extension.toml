@@ -30,4 +30,5 @@ languages = [
     "TOML",
     "TypeScript React",
     "TypeScript",
+    "TSX"
 ]
