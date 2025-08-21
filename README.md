@@ -9,7 +9,7 @@ To update the Zed Extension:
 1. Commit changes and tag with version, push
 1. Move to zed/extensions repo
 1. Checkout main and sync with: `git fetch upstream && git pull upstream main`
-1. Make a new branch
+1. Make a new branch (`gfb codebook-0.x.x`)
 1. Run `git submodule update --remote --merge extensions/codebook` in zed/extensions
 1. Update `extensions.toml` in zed/extensions with new version number.
 1. Commit, push
