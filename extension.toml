@@ -1,6 +1,6 @@
 id = "codebook"
 name = "Codebook Spell Checker"
-version = "0.1.9"
+version = "0.1.10"
 description = "📒 A fast, code aware spell checker."
 authors = ["Bo"]
 license = "MIT"
@@ -13,8 +13,8 @@ languages = [
     "C",
     "CSS",
     "Go",
-    "HTML",
     "Haskell",
+    "HTML",
     "Java",
     "JavaScript React",
     "JavaScript",
@@ -28,7 +28,7 @@ languages = [
     "Rust",
     "Shell Script",
     "TOML",
+    "TSX",
     "TypeScript React",
     "TypeScript",
-    "TSX"
 ]
