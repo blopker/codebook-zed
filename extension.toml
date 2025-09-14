@@ -1,6 +1,6 @@
 id = "codebook"
 name = "Codebook Spell Checker"
-version = "0.1.10"
+version = "0.1.11"
 description = "📒 A fast, code aware spell checker."
 authors = ["Bo"]
 license = "MIT"
@@ -11,7 +11,9 @@ repository = "https://github.com/blopker/codebook"
 name = "codebook"
 languages = [
     "C",
+    "C++",
     "CSS",
+    "Elixir",
     "Go",
     "Haskell",
     "HTML",

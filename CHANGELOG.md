@@ -1,3 +1,8 @@
+[0.1.11]
+
+- Add C++
+- Add Elixir
+
 [0.1.9]
 
 - Add Lua
