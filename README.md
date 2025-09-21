@@ -12,5 +12,5 @@ To update the Zed Extension:
 1. Make a new branch (`gfb codebook-0.x.x`)
 1. Run `git submodule update --remote --merge extensions/codebook` in zed/extensions
 1. Update `extensions.toml` in zed/extensions with new version number.
-1. Commit, push
+1. Commit (`gc "Codebook v0.1.11"`), push
 1. Make a PR to zed/extensions with the updated submodule
