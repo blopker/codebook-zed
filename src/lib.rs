@@ -347,3 +347,71 @@ impl zed::Extension for CodebookExtension {
 }
 
 zed::register_extension!(CodebookExtension);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_codebook_binary_new() {
+        let path = PathBuf::from("/test/path/binary");
+        let binary = CodebookBinary::new(path.clone(), LOG_LEVEL_DEBUG);
+
+        assert_eq!(binary.path, path);
+        assert_eq!(binary.env.len(), 1);
+        assert_eq!(binary.env[0].0, ENV_RUST_LOG);
+        assert_eq!(binary.env[0].1, LOG_LEVEL_DEBUG);
+    }
+
+    #[test]
+    fn test_codebook_binary_with_info_level() {
+        let path = PathBuf::from("/usr/bin/codebook");
+        let binary = CodebookBinary::new(path.clone(), LOG_LEVEL_INFO);
+
+        assert_eq!(binary.path, path);
+        assert_eq!(
+            binary.env[0],
+            (ENV_RUST_LOG.to_string(), LOG_LEVEL_INFO.to_string())
+        );
+    }
+
+    #[test]
+    fn test_get_version_directory_path() {
+        let extension = CodebookExtension::new();
+        let version = "1.2.3";
+        let path = extension.get_version_directory_path(version);
+
+        assert_eq!(path, PathBuf::from("codebook-lsp-1.2.3"));
+    }
+
+    #[test]
+    fn test_get_version_directory_path_with_prerelease() {
+        let extension = CodebookExtension::new();
+        let version = "2.0.0-beta.1";
+        let path = extension.get_version_directory_path(version);
+
+        assert_eq!(path, PathBuf::from("codebook-lsp-2.0.0-beta.1"));
+    }
+
+    #[test]
+    fn test_extension_new() {
+        let extension = CodebookExtension::new();
+        assert!(extension.binary_cache.is_none());
+    }
+
+    #[test]
+    fn test_get_cached_binary_no_cache() {
+        let extension = CodebookExtension::new();
+        let result = extension.get_cached_binary().unwrap();
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_get_cached_binary_with_nonexistent_cache() {
+        let mut extension = CodebookExtension::new();
+        extension.binary_cache = Some(PathBuf::from("/nonexistent/path"));
+
+        let result = extension.get_cached_binary().unwrap();
+        assert!(result.is_none());
+    }
+}
