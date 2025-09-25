@@ -1,3 +1,7 @@
+[0.2.0]
+
+- Update logic now fails gracefully if there's no internet connection.
+
 [0.1.11]
 
 - Add C++
