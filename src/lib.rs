@@ -13,6 +13,9 @@ const ENV_RUST_LOG: &str = "RUST_LOG";
 const LOG_LEVEL_DEBUG: &str = "debug";
 const LOG_LEVEL_INFO: &str = "info";
 
+// Get pre_release build for testing
+const GET_PRE_RELEASE: bool = false;
+
 struct CodebookExtension {
     binary_cache: Option<PathBuf>,
 }
@@ -179,7 +182,7 @@ impl CodebookExtension {
             &format!("{}/{}", GITHUB_REPO_OWNER, GITHUB_REPO_NAME),
             zed::GithubReleaseOptions {
                 require_assets: true,
-                pre_release: false,
+                pre_release: GET_PRE_RELEASE,
             },
         )?;
 
