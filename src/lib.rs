@@ -111,12 +111,8 @@ impl CodebookExtension {
                 );
                 self.download_and_install_binary(&release, language_server_id)
             }
-            Ok(None) => {
-                // No update needed - use existing
-                self.load_existing_binary()
-            }
-            Err(_) => {
-                // Check failed (likely offline) - try existing
+            Ok(None) | Err(_) => {
+                // No update needed - use existing, or if err, internet failed
                 self.load_existing_binary()
             }
         };
