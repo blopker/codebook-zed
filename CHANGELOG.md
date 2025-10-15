@@ -1,3 +1,8 @@
+[0.2.1]
+
+- Add Zig
+- Add LaTeX
+
 [0.2.0]
 
 - Update logic now fails gracefully if there's no internet connection.
