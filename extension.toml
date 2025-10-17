@@ -1,6 +1,6 @@
 id = "codebook"
 name = "Codebook Spell Checker"
-version = "0.2.1"
+version = "0.2.2"
 description = "📒 A fast, code aware spell checker."
 authors = ["Bo"]
 license = "MIT"
