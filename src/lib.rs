@@ -220,12 +220,7 @@ impl CodebookExtension {
         Ok(binary_path)
     }
 
-    fn find_compatible_asset<'a>(
-        &self,
-        release: &'a GithubRelease,
-    ) -> Result<&'a zed::GithubReleaseAsset> {
-        let (platform, arch) = zed::current_platform();
-
+    fn asset_name(&self, platform: zed::Os, arch: zed::Architecture) -> Result<(String, String)> {
         let arch_name = match arch {
             zed::Architecture::Aarch64 => "aarch64",
             zed::Architecture::X8664 => "x86_64",
@@ -238,16 +233,28 @@ impl CodebookExtension {
             zed::Os::Windows => ("pc-windows-msvc", "zip"),
         };
 
-        let asset_name = format!(
+        let descriptor = format!("{}-{}", arch_name, os_str);
+
+        let name = format!(
             "{}-{}-{}.{}",
             EXTENSION_LSP_NAME, arch_name, os_str, file_ext
         );
+
+        Ok((name, descriptor))
+    }
+
+    fn find_compatible_asset<'a>(
+        &self,
+        release: &'a GithubRelease,
+    ) -> Result<&'a zed::GithubReleaseAsset> {
+        let (platform, arch) = zed::current_platform();
+        let (asset_name, descriptor) = self.asset_name(platform, arch)?;
 
         release
             .assets
             .iter()
             .find(|a| a.name == asset_name)
-            .ok_or_else(|| format!("No compatible binary found for {}-{}", arch_name, os_str))
+            .ok_or_else(|| format!("No compatible binary found for {}", descriptor))
     }
 
     fn download_binary(
@@ -390,6 +397,28 @@ mod tests {
         let path = extension.get_version_directory_path(version);
 
         assert_eq!(path, PathBuf::from("codebook-lsp-2.0.0-beta.1"));
+    }
+
+    #[test]
+    fn test_windows_arm64_asset_name_includes_exe_variant() {
+        let extension = CodebookExtension::new();
+        let (name, descriptor) = extension
+            .asset_name(zed::Os::Windows, zed::Architecture::Aarch64)
+            .expect("expected candidates");
+
+        assert_eq!(descriptor, "aarch64-pc-windows-msvc");
+        assert_eq!(name, "codebook-lsp-aarch64-pc-windows-msvc.zip");
+    }
+
+    #[test]
+    fn test_macos_x86_asset_name_does_not_include_exe_variant() {
+        let extension = CodebookExtension::new();
+        let (name, descriptor) = extension
+            .asset_name(zed::Os::Mac, zed::Architecture::X8664)
+            .expect("expected candidates");
+
+        assert_eq!(descriptor, "x86_64-apple-darwin");
+        assert_eq!(name, "codebook-lsp-x86_64-apple-darwin.tar.gz");
     }
 
     #[test]

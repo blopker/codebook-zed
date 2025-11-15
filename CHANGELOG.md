@@ -1,3 +1,7 @@
+[0.2.5] - Unreleased
+
+- Add Windows arm64 download support
+
 [0.2.4]
 
 - Add Typst
