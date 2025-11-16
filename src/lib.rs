@@ -67,7 +67,11 @@ impl CodebookExtension {
     fn find_development_binary(&self) -> Result<Option<CodebookBinary>> {
         let dev_path = PathBuf::from(EXTENSION_LSP_NAME);
         if dev_path.exists() {
-            Ok(Some(CodebookBinary::new(dev_path, LOG_LEVEL_DEBUG)))
+            let mut binary = CodebookBinary::new(dev_path, LOG_LEVEL_DEBUG);
+            binary
+                .env
+                .push(("RUST_BACKTRACE".to_string(), "1".to_string()));
+            Ok(Some(binary))
         } else {
             Ok(None)
         }
