@@ -116,7 +116,7 @@ impl CodebookExtension {
                 self.download_and_install_binary(&release, language_server_id)
             }
             Ok(None) | Err(_) => {
-                // No update needed - use existing, or if err, internet failed
+                // No update needed - use existing, or if err, internet failed or unsupported platform
                 self.load_existing_binary()
             }
         };
@@ -340,7 +340,14 @@ impl zed::Extension for CodebookExtension {
         language_server_id: &zed::LanguageServerId,
         worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
-        let binary = self.get_binary(language_server_id, worktree)?;
+        let binary = self.get_binary(language_server_id, worktree).map_err(|e| {
+            format!(
+                "Failed to load binary! This could be due to no internet connection, \
+                or running on an unsupported platform. \n
+                Please check that github.com is accessible and try again. \n
+                Error: {e}"
+            )
+        })?;
         let project_path = worktree.root_path();
 
         let binary_str = binary
