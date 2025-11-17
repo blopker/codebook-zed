@@ -1,4 +1,4 @@
-[0.2.5] - Unreleased
+[0.2.5]
 
 - Add Windows arm64 download support
 

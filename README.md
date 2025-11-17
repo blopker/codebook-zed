@@ -3,14 +3,24 @@ See main repo at: [https://github.com/blopker/codebook](https://github.com/blopk
 
 Please submit any issues in the main repo.
 
-To update the Zed Extension:
+## Release process
 
-1. Update the version in extension.toml
-1. Commit changes and tag with version, push
-1. Move to zed/extensions repo
-1. Checkout main and sync with: `git fetch upstream && git pull upstream main`
-1. Make a new branch with extension version number (`gfb codebook-0.x.x`)
-1. Run `git submodule update --remote --merge extensions/codebook` in zed/extensions
-1. Update `extensions.toml` in zed/extensions with new version number.
-1. Commit (`gc "Codebook v0.2.4"`), push
-1. Make a PR to zed/extensions with the updated submodule
+Run the release helper to push a new version of the extension and update the
+`zed-extensions` repository:
+
+```sh
+bun scripts/release.ts 0.2.4
+```
+
+What the script does:
+
+1. Updates `extension.toml`, commits every change in this repo with the message `Codebook v0.2.4`, tags the commit, and pushes both the commit and the tag.
+2. Switches to `../zed-extensions`, checks out `main`, fetches/pulls `upstream main`, and creates a branch named `codebook-0.2.4`.
+3. Runs `git submodule update --remote --merge extensions/codebook`, bumps the version entry in `extensions.toml`, commits, and pushes the branch.
+4. Prints a reminder to open a PR in `zed-extensions` for the newly pushed branch.
+
+Requirements:
+
+- Bun installed locally.
+- The `../zed-extensions` repo exists and has an `upstream` remote configured.
+- Both repositories are free of uncommitted changes (other than what you plan to include in the release in this repo).
