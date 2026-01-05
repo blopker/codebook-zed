@@ -5,6 +5,8 @@ Please submit any issues in the main repo.
 
 ## Release process
 
+First, update the change log, commit and push.
+
 Run the release helper to push a new version of the extension and update the
 `zed-extensions` repository:
 
