@@ -189,7 +189,21 @@ async function gitAddCommitTagAndPush(repoPath: string, version: string) {
   });
 
   if (diffResult.code === 0) {
-    throw new Error("No changes staged in extension repo; aborting release.");
+    const status = await run("git", ["status", "--porcelain"], {
+      cwd: repoPath,
+      captureOutput: true,
+      quiet: true,
+    });
+
+    if (status.stdout.trim().length > 0) {
+      throw new Error("No changes staged in extension repo; aborting release.");
+    }
+
+    await run("git", ["push", "origin", "HEAD"], { cwd: repoPath });
+    const tagName = `v${version}`;
+    await run("git", ["tag", tagName], { cwd: repoPath });
+    await run("git", ["push", "origin", tagName], { cwd: repoPath });
+    return;
   }
 
   const commitMessage = `Codebook v${version}`;
