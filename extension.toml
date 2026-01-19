@@ -15,6 +15,7 @@ languages = [
     "CSS",
     "CSharp",
     "Elixir",
+    "Erlang",
     "Go",
     "HTML",
     "Haskell",

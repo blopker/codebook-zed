@@ -1,3 +1,7 @@
+[0.2.8]
+
+- Add Erlang
+
 [0.2.7]
 
 - Add Odin

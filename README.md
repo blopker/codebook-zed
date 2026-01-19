@@ -5,7 +5,7 @@ Please submit any issues in the main repo.
 
 ## Release process
 
-First, update the change log, commit and push.
+First, update the change log, commit and push. Don't update version in extension.toml.
 
 Run the release helper to push a new version of the extension and update the
 `zed-extensions` repository:
