@@ -1,3 +1,7 @@
+[0.2.9]
+
+- Add AsciiDoc support
+
 [0.2.8]
 
 - Add Erlang

@@ -10,6 +10,7 @@ repository = "https://github.com/blopker/codebook"
 [language_servers.codebook]
 name = "codebook"
 languages = [
+    "AsciiDoc",
     "C",
     "C++",
     "CSS",
