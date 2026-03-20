@@ -11,6 +11,7 @@ repository = "https://github.com/blopker/codebook"
 name = "codebook"
 languages = [
     "AsciiDoc",
+    "Astro",
     "C",
     "C++",
     "CSS",
@@ -18,11 +19,11 @@ languages = [
     "Elixir",
     "Erlang",
     "Go",
-    "HTML",
     "Haskell",
+    "HTML",
     "Java",
-    "JavaScript React",
     "JavaScript",
+    "JavaScript React",
     "LaTeX",
     "Lua",
     "Markdown",
@@ -37,8 +38,11 @@ languages = [
     "Swift",
     "TOML",
     "TSX",
-    "TypeScript React",
     "TypeScript",
+    "TypeScript React",
     "Typst",
-    "Zig"
+    "VHDL",
+    "Vue.js",
+    "YAML",
+    "Zig",
 ]
