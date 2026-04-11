@@ -1,3 +1,10 @@
+[0.2.10]
+
+- Add Svelte support
+- Add Astro support
+- Add Vue support
+- Add OCaml support
+
 [0.2.9]
 
 - Add AsciiDoc support
