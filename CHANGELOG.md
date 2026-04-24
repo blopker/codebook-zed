@@ -1,3 +1,7 @@
+[0.2.12]
+
+- Add Dart support
+
 [0.2.10]
 
 - Add Svelte support
