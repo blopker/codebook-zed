@@ -1,6 +1,7 @@
 [0.2.12]
 
 - Add Dart support
+- Add MDX support
 
 [0.2.10]
 
