@@ -115,9 +115,22 @@ impl CodebookExtension {
                 );
                 self.download_and_install_binary(&release, language_server_id)
             }
-            Ok(None) | Err(_) => {
-                // No update needed - use existing, or if err, internet failed or unsupported platform
+            Ok(None) => {
+                // No update needed - use existing
                 self.load_existing_binary()
+            }
+            Err(update_err) => {
+                // Update check failed (no internet, DNS, unsupported platform, etc.).
+                // Fall back to a cached binary if one exists; otherwise surface the
+                // real error rather than a misleading "version file" message from the
+                // empty cache directory (see codebook#166).
+                self.load_existing_binary().map_err(|_| {
+                    format!(
+                        "Could not contact GitHub to check for the latest release \
+                         and no cached binary is available. Check that github.com \
+                         is reachable. Underlying error: {update_err}"
+                    )
+                })
             }
         };
 
@@ -161,7 +174,10 @@ impl CodebookExtension {
     fn read_version_file(&self) -> Result<String> {
         fs::read_to_string(VERSION_FILE)
             .map(|s| s.trim().to_string())
-            .map_err(|e| format!("Failed to read version file: {}", e))
+            .map_err(|e| match e.kind() {
+                std::io::ErrorKind::NotFound => "no cached binary yet".to_string(),
+                _ => format!("Failed to read version file: {}", e),
+            })
     }
 
     fn get_version_directory_path(&self, version: &str) -> PathBuf {
@@ -178,13 +194,36 @@ impl CodebookExtension {
     }
 
     fn check_for_update(&self) -> Result<Option<GithubRelease>> {
-        let release = zed::latest_github_release(
-            &format!("{}/{}", GITHUB_REPO_OWNER, GITHUB_REPO_NAME),
-            zed::GithubReleaseOptions {
-                require_assets: true,
-                pre_release: GET_PRE_RELEASE,
-            },
-        )?;
+        // Retry the GitHub API call to absorb transient failures (e.g. flaky DNS
+        // in WSL2 on first launch — see codebook#166).
+        let repo = format!("{}/{}", GITHUB_REPO_OWNER, GITHUB_REPO_NAME);
+        let opts = zed::GithubReleaseOptions {
+            require_assets: true,
+            pre_release: GET_PRE_RELEASE,
+        };
+
+        let max_attempts = 3;
+        let mut last_err: Option<String> = None;
+        let mut release = None;
+        for attempt in 1..=max_attempts {
+            match zed::latest_github_release(&repo, opts) {
+                Ok(r) => {
+                    release = Some(r);
+                    break;
+                }
+                Err(e) => {
+                    last_err = Some(e);
+                    if attempt < max_attempts {
+                        std::thread::sleep(std::time::Duration::from_millis(
+                            500 * attempt as u64,
+                        ));
+                    }
+                }
+            }
+        }
+        let release = release.ok_or_else(|| {
+            last_err.unwrap_or_else(|| "Unknown error fetching latest release".to_string())
+        })?;
 
         // Check if we already have this version
         if let Ok(current_version) = self.read_version_file() {
