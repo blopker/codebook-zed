@@ -1,3 +1,10 @@
+[Unreleased]
+
+- Make binary management more robust for flaky networks (WSL2/SSH remotes, #166):
+  - Fall back to a previously downloaded binary when a release download fails
+  - Re-download when the installed binary goes missing instead of erroring until the next release
+  - Derive the installed version from the binary's directory name, removing the `.version` sidecar file that could fall out of sync
+
 [0.2.12]
 
 - Add Dart support

@@ -4,7 +4,10 @@ use zed_extension_api::{self as zed, GithubRelease, Result};
 
 // Binary and versioning constants
 const EXTENSION_LSP_NAME: &str = "codebook-lsp";
-const VERSION_FILE: &str = ".version";
+// Sidecar version file used by old extension versions; only referenced to
+// clean up the leftover. The installed version is now derived from the
+// version-stamped directory name instead.
+const LEGACY_VERSION_FILE: &str = ".version";
 const GITHUB_REPO_OWNER: &str = "blopker";
 const GITHUB_REPO_NAME: &str = "codebook";
 
@@ -106,18 +109,34 @@ impl CodebookExtension {
             &zed::LanguageServerInstallationStatus::CheckingForUpdate,
         );
 
-        let result = match self.check_for_update() {
-            Ok(Some(release)) => {
-                // Update available - download it
-                zed::set_language_server_installation_status(
-                    language_server_id,
-                    &zed::LanguageServerInstallationStatus::Downloading,
-                );
-                self.download_and_install_binary(&release, language_server_id)
-            }
-            Ok(None) => {
-                // No update needed - use existing
-                self.load_existing_binary()
+        let result = match self.fetch_latest_release() {
+            Ok(release) => {
+                let current_path = self
+                    .get_version_directory_path(&release.version)
+                    .join(self.get_binary_filename());
+                if current_path.exists() {
+                    Ok(CodebookBinary::new(current_path, LOG_LEVEL_INFO))
+                } else {
+                    zed::set_language_server_installation_status(
+                        language_server_id,
+                        &zed::LanguageServerInstallationStatus::Downloading,
+                    );
+                    // A flaky connection can pass the release check but drop
+                    // the download itself; fall back to a previously
+                    // downloaded binary rather than failing outright.
+                    self.download_and_install_binary(&release, language_server_id)
+                        .or_else(|download_err| {
+                            self.load_existing_binary()
+                                .map_err(|_| download_err)
+                                .inspect(|_| {
+                                    eprintln!(
+                                        "Warning: Failed to download codebook-lsp {}, \
+                                         using previously downloaded version",
+                                        release.version
+                                    );
+                                })
+                        })
+                }
             }
             Err(update_err) => {
                 // Update check failed (no internet, DNS, unsupported platform, etc.).
@@ -166,18 +185,39 @@ impl CodebookExtension {
         }
     }
 
+    /// Use the newest binary already on disk. The installed version is read
+    /// from the version-stamped directory name, so the directory holding the
+    /// binary is the only record of what's installed — there's no sidecar
+    /// state to fall out of sync (see codebook#166).
     fn load_existing_binary(&self) -> Result<CodebookBinary> {
-        let path = self.get_cached_binary_path()?;
+        let path = self
+            .installed_versions()?
+            .into_iter()
+            .max_by_key(|(version, _)| version_sort_key(version))
+            .map(|(_, path)| path)
+            .ok_or("no downloaded binary yet")?;
         Ok(CodebookBinary::new(path, LOG_LEVEL_INFO))
     }
 
-    fn read_version_file(&self) -> Result<String> {
-        fs::read_to_string(VERSION_FILE)
-            .map(|s| s.trim().to_string())
-            .map_err(|e| match e.kind() {
-                std::io::ErrorKind::NotFound => "no cached binary yet".to_string(),
-                _ => format!("Failed to read version file: {}", e),
-            })
+    /// List downloaded versions that still have a binary on disk,
+    /// as (version, binary path) pairs.
+    fn installed_versions(&self) -> Result<Vec<(String, PathBuf)>> {
+        let prefix = format!("{}-", EXTENSION_LSP_NAME);
+        let entries =
+            fs::read_dir(".").map_err(|e| format!("Failed to read extension directory: {}", e))?;
+
+        let mut versions = Vec::new();
+        for entry in entries.flatten() {
+            let name = entry.file_name();
+            let Some(version) = name.to_str().and_then(|n| n.strip_prefix(&prefix)) else {
+                continue;
+            };
+            let binary_path = entry.path().join(self.get_binary_filename());
+            if binary_path.exists() {
+                versions.push((version.to_string(), binary_path));
+            }
+        }
+        Ok(versions)
     }
 
     fn get_version_directory_path(&self, version: &str) -> PathBuf {
@@ -193,7 +233,7 @@ impl CodebookExtension {
         binary
     }
 
-    fn check_for_update(&self) -> Result<Option<GithubRelease>> {
+    fn fetch_latest_release(&self) -> Result<GithubRelease> {
         // Retry the GitHub API call to absorb transient failures (e.g. flaky DNS
         // in WSL2 on first launch — see codebook#166).
         let repo = format!("{}/{}", GITHUB_REPO_OWNER, GITHUB_REPO_NAME);
@@ -221,33 +261,9 @@ impl CodebookExtension {
                 }
             }
         }
-        let release = release.ok_or_else(|| {
+        release.ok_or_else(|| {
             last_err.unwrap_or_else(|| "Unknown error fetching latest release".to_string())
-        })?;
-
-        // Check if we already have this version
-        if let Ok(current_version) = self.read_version_file() {
-            if current_version == release.version {
-                return Ok(None);
-            }
-        }
-
-        Ok(Some(release))
-    }
-
-    fn get_cached_binary_path(&self) -> Result<PathBuf> {
-        let version = self.read_version_file()?;
-        let version_dir = self.get_version_directory_path(&version);
-        let binary_path = version_dir.join(self.get_binary_filename());
-
-        if !binary_path.exists() {
-            return Err(format!(
-                "Binary not found at expected path: {}",
-                binary_path.display()
-            ));
-        }
-
-        Ok(binary_path)
+        })
     }
 
     fn install_binary(&self, release: &zed::GithubRelease) -> Result<PathBuf> {
@@ -257,9 +273,8 @@ impl CodebookExtension {
 
         if !binary_path.exists() {
             self.download_binary(asset, &version_dir, &binary_path)?;
-            self.write_version_file(&release.version)?;
-            self.cleanup_old_versions(&version_dir)?;
         }
+        self.cleanup_old_versions(&version_dir)?;
         Ok(binary_path)
     }
 
@@ -332,11 +347,10 @@ impl CodebookExtension {
         Ok(())
     }
 
-    fn write_version_file(&self, version: &str) -> Result<()> {
-        fs::write(VERSION_FILE, version).map_err(|e| format!("Failed to write version file: {}", e))
-    }
-
     fn cleanup_old_versions(&self, current_version_dir: &Path) -> Result<()> {
+        // Remove the sidecar version file older extension versions left behind.
+        let _ = fs::remove_file(LEGACY_VERSION_FILE);
+
         let current_dir_name = current_version_dir
             .file_name()
             .and_then(|n| n.to_str())
@@ -367,6 +381,16 @@ impl CodebookExtension {
 
         Ok(())
     }
+}
+
+/// Sort key that compares versions like "v0.3.9" and "v0.3.41" by their
+/// numeric parts, where plain string ordering would pick the wrong "newest".
+fn version_sort_key(version: &str) -> Vec<u64> {
+    version
+        .split(|c: char| !c.is_ascii_digit())
+        .filter(|part| !part.is_empty())
+        .map(|part| part.parse().unwrap_or(0))
+        .collect()
 }
 
 impl zed::Extension for CodebookExtension {
@@ -469,6 +493,15 @@ mod tests {
 
         assert_eq!(descriptor, "x86_64-apple-darwin");
         assert_eq!(name, "codebook-lsp-x86_64-apple-darwin.tar.gz");
+    }
+
+    #[test]
+    fn test_version_sort_key_numeric_ordering() {
+        assert_eq!(version_sort_key("v1.2.3"), vec![1, 2, 3]);
+        // Plain string ordering would get both of these wrong
+        assert!(version_sort_key("v0.3.41") > version_sort_key("v0.3.9"));
+        assert!(version_sort_key("v0.10.0") > version_sort_key("v0.9.9"));
+        assert!(version_sort_key("v1.0.0") > version_sort_key("v0.99.99"));
     }
 
     #[test]
