@@ -254,9 +254,7 @@ impl CodebookExtension {
                 Err(e) => {
                     last_err = Some(e);
                     if attempt < max_attempts {
-                        std::thread::sleep(std::time::Duration::from_millis(
-                            500 * attempt as u64,
-                        ));
+                        std::thread::sleep(std::time::Duration::from_millis(500 * attempt as u64));
                     }
                 }
             }
