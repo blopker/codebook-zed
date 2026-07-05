@@ -1,3 +1,7 @@
+[Unreleased]
+
+- Add Just (justfile) support (#288)
+
 [0.2.13]
 
 - Make binary management more robust for flaky networks (WSL2/SSH remotes, #166):
