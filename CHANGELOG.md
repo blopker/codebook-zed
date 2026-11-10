@@ -1,3 +1,8 @@
+[Unreleased]
+
+- Add Nix support (#308)
+- Add HCL and Terraform support (#305)
+
 [0.2.14]
 
 - Add Just (justfile) support (#288)
